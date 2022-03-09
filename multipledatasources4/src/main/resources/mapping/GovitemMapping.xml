@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mzd.multipledatasources.mapper.GovitemMapping">
+    <select id="list" resultType="com.mzd.multipledatasources.pojo.Govitem">
+        select e.id as itemid, e.item_name as itemname,
+               case e.data_source  when 0 then 'GWY政策文件库' when 1 then'人工录入' when 2 then '北京政务' when 3 then '河北政务' when 4 then '国家政务' when 5 then 'MIS系统' when 6 then '国家政务-黑龙江' end as datasource,
+               (select name from t_tag where t_tag.id=e.area_id) as area,
+               e.item_prop as itemprop, (select name from t_tag where id=e.tag_id )as tag, e.tag_id as tagid,
+               (select dim_tag_name from t_tag_relation where tag_id=(select industry_id from g_item_to_industry where item_id=e.id) and level=0) as industry,
+               (select dim_tag_name from t_tag_relation where tag_id=(select industry_id from g_item_to_industry where item_id=e.id) and level=-1) as systemindustry,
+               (select dim_tag_name from t_tag_relation where tag_id=(select industry_id from g_item_to_industry where item_id=e.id) and level=-2) as rootindustry
+        from g_enforcement_item e where e.area_id in(select id from t_tag where (t_tag.id in (select t_tag.id from t_tag ,t_tag_to_type where t_tag.id= t_tag_to_type.tag_id and t_tag_to_type.tag_type_id=2 and t_tag_to_type.remark='区县级') and t_tag.name like '%北京%') or t_tag.id in (1,2));
+    </select>
+    <insert id="add" parameterType="com.mzd.multipledatasources.pojo.Govitem">
+        insert into gov_item(item_id,item_name,data_source,area,item_prop,tag,tag_id,industry,system_industry,root_industry)values(#{itemid},#{itemname},#{datasource},#{area},#{itemprop},#{tag},#{tagid},#{industry},#{systemindustry},#{rootindustry});
+    </insert>
+</mapper>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mzd.multipledatasources.mapper.AsknewMapping">
+    <select id="list" resultType="com.mzd.multipledatasources.pojo.Asknew">
+        select a.id as askid, a.ask_name as askname,
+               g.industry_id as industryid,
+               (select dim_tag_name from t_tag_relation where tag_id=(select industry_id from g_item_to_industry where item_id=g.industry_id) and level=0) as industry,
+               (select dim_tag_name from t_tag_relation where tag_id=(select industry_id from g_item_to_industry where item_id=g.industry_id) and level=-1) as systemindustry,
+               (select dim_tag_name from t_tag_relation where tag_id=(select industry_id from g_item_to_industry where item_id=g.industry_id) and level=-2) as rootindustry,
+               case i.area_id when 1 then '中国' when 2 then '北京' end as area,
+               case g.source when 0 then '通用' when 1 then '政务' when 2 then '政策周期' when 3 then '政策解读' when 4 then '常见问答' when 5 then '多轮资源' when 6 then '通用虚拟事项' end as source
+        from a_ask a inner join a_ask_group g on a.ask_group_id=g.id inner join a_answer_info i on g.id=i.ask_group_id where i.area_id in(1,2) and g.source in (1,4);
+    </select>
+    <insert id="add" parameterType="com.mzd.multipledatasources.pojo.Asknew">
+        insert into asknew(ask_id,ask_name,industry_id,industry,system_industry,root_industry,area,source)values(#{askid},#{askname},#{industryid},#{industry},#{systemindustry},#{rootindustry},#{area},#{source});
+    </insert>
+</mapper>

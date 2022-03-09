@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mzd.multipledatasources.mapper.AnswerMapping">
+    <select id="list" resultType="com.mzd.multipledatasources.pojo.Answer">
+        select i.id as answerid, t.title,
+               case source  when 0 then '通用' when 1 then '政务' when 2 then '政策周期' when 3 then '政策解读' when 4 then '常见问答' when 5 then '多轮资源' when 6 then '通用虚拟事项' end as source,
+               case area_id when 1 then '中国' when 2 then '北京' end as area,
+               (select  enforcement_item_id from a_answer_info_to_enforcement where answer_info_id=i.id) as enforcementitemid,
+               (select distinct qa_id from p_qa_to_answer where answer_info_id=i.id ) as qaid
+        from a_answer_info i left join a_answer_title t on i.id=t.answer_id where i.area_id in(1,2) and source in(1,4);
+    </select>
+    <insert id="add" parameterType="com.mzd.multipledatasources.pojo.Answer">
+        insert into answer(answer_id,title,source,area,enforcement_item_id,qa_id)values(#{answerid},#{title},#{source},#{area},#{enforcementitemid},#{qaid});
+    </insert>
+</mapper>
